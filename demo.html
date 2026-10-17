@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>gamedac.js demo</title>
+<style>
+:root{--bg:#0b0f14;--fg:#e6ecf5;--dim:#9fb4cc;--card:#14202e;--line:#24364a;--acc:#4da3ff;color-scheme:dark light}
+@media (prefers-color-scheme:light){:root{--bg:#f6f8fb;--fg:#14202e;--dim:#52657d;--card:#fff;--line:#d5dde8;--acc:#1b6fd1}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px}h1{font-size:1.4rem;margin:.2rem 0}h2{font-size:1.05rem;margin:0 0 .5rem}p.d{color:var(--dim);margin:.2rem 0 1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}label{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--dim)}
+select,input{font:inherit}button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:default}.st{font-size:13px;color:var(--dim);min-height:1.4em;margin-top:8px}
+table{border-collapse:collapse;font-size:14px}td{padding:2px 14px 2px 0}td:first-child{color:var(--dim)}
+</style></head><body><main>
+<h1>gamedac.js demo</h1>
+<p class="d">Two things you can do, both entirely in your browser (nothing is uploaded): <b>encode</b> any audio file into a classic game format, or <b>open</b> a game audio file and play or convert it.</p>
+
+<div class="card"><h2>1. Encode an audio file</h2>
+ <div class="row"><input id="file" type="file" accept="audio/*"> <button id="synth" class="alt">Use built-in test clip</button></div>
+ <div class="row" style="margin-top:10px">
+  <label>Format<select id="fmt"><option value="vag">PlayStation VAG (.vag)</option><option value="vag-st">PlayStation VAGi stereo (.vag)</option><option value="vb">PlayStation VB raw (.vb)</option><option value="xa">PlayStation CD-XA (.xa)</option><option value="dsp">Nintendo DSP (.dsp)</option><option value="adx">CRI ADX (.adx)</option><option value="aica">Yamaha AICA raw (.aica)</option><option value="yamaha-wav">Yamaha ADPCM WAV</option><option value="vox">OKI VOX raw (.vox)</option><option value="oki-wav">OKI ADPCM WAV</option></select></label>
+  <label>Loop the whole clip<select id="loop"><option value="0">no</option><option value="1">yes (where the format has loop points)</option></select></label>
+  <button id="go" disabled>Encode</button><button id="pa" class="alt" disabled>Play original</button><button id="pb" class="alt" disabled>Play decoded</button><button id="stop" class="alt">Stop</button><button id="dl" class="alt" disabled>Download</button></div>
+ <div class="st" id="s1">No audio loaded.</div>
+ <table style="margin-top:8px"><tr><td>Result</td><td id="r1">-</td></tr><tr><td>Size vs. 16-bit PCM</td><td id="r2">-</td></tr><tr><td>Encode / decode time</td><td id="r3">-</td></tr></table>
+ <p class="d" style="margin:.6rem 0 0">The decoded clip you hear is gamedac's own decoder. Rates are fixed by some formats (XA 37.8 kHz, OKI 8 kHz), so those are resampled first.</p></div>
+
+<div class="card"><h2>2. Open a game audio file</h2>
+ <div class="row"><input id="gfile" type="file" accept=".vag,.vb,.xa,.dsp,.adx,.aica,.vox,.wav"> <label>Headerless data is read as<select id="hl"><option value="vb">PlayStation VB</option><option value="aica">Yamaha AICA raw</option><option value="vox">OKI VOX raw</option></select></label>
+  <label>Rate (headerless only)<input id="hrate" type="number" value="44100" min="4000" max="96000" style="width:90px"></label></div>
+ <div class="row" style="margin-top:10px"><button id="gplay" class="alt" disabled>Play</button><button id="gwav" class="alt" disabled>Download as WAV</button></div>
+ <div class="st" id="s2">No file opened. Headered formats (VAG, XA, DSP, ADX, WAV-wrapped Yamaha/OKI) are recognised from their content.</div></div>
+<p class="d">See the <a href="README.md" style="color:var(--acc)">README</a> for the formats, what was verified against vgmstream and what was not.</p>
+<script src="gamedac.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+let ctx, current = null, orig = null, enc = null, dec = null, opened = null;
+const AC = () => (ctx = ctx || new (window.AudioContext || window.webkitAudioContext)());
+function stop() { try { current && current.stop(); } catch (e) {} current = null; }
+function play(chs, sr) { stop(); const ac = AC(), b = ac.createBuffer(chs.length, chs[0].length, sr); chs.forEach((c, i) => b.copyToChannel(c, i)); current = ac.createBufferSource(); current.buffer = b; current.connect(ac.destination); current.start(); }
+$("stop").onclick = stop;
+function save(bytes, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" })); a.download = name; a.click(); }
+function resample(x, from, to) { if (from === to) return x; const n = Math.floor(x.length * to / from), o = new Float32Array(n), r = from / to; for (let i = 0; i < n; i++) { const p = i * r, i0 = Math.floor(p), f = p - i0; o[i] = x[i0] * (1 - f) + (x[i0 + 1] || x[i0]) * f; } return o; }
+
+function setOrig(chs, sr, label) { orig = { chs, sr }; enc = dec = null; ["go", "pa"].forEach((i) => { $(i).disabled = false; }); ["pb", "dl"].forEach((i) => { $(i).disabled = true; }); $("s1").textContent = label + ": " + (chs[0].length / sr).toFixed(1) + " s, " + sr + " Hz, " + chs.length + " ch"; }
+$("file").onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { $("s1").textContent = "Decoding..."; const b = await AC().decodeAudioData(await f.arrayBuffer()); setOrig(Array.from({ length: Math.min(2, b.numberOfChannels) }, (_, i) => b.getChannelData(i).slice()), b.sampleRate, f.name); } catch (err) { $("s1").textContent = "Could not decode that file: " + err.message; } };
+$("synth").onclick = () => { const sr = 44100, n = sr * 5, x = new Float32Array(n), y = new Float32Array(n), notes = [261.6, 329.6, 392, 523.3, 659.3, 784]; for (let i = 0; i < n; i++) { const t = i / sr; let s = 0; notes.forEach((f, k) => { const e = Math.exp(-((t * 2 + k * 0.37) % 1.5) * 2.2); s += e * (Math.sin(2 * Math.PI * f * t) + 0.4 * Math.sin(4 * Math.PI * f * t) + 0.2 * Math.sin(6 * Math.PI * f * t)); }); x[i] = 0.12 * s; y[i] = 0.1 * s * Math.sin(2 * Math.PI * 0.3 * t + 1) + x[i] * 0.5; } setOrig([x, y], sr, "Built-in test clip"); };
+$("pa").onclick = () => play(orig.chs, orig.sr);
+$("pb").onclick = () => play(dec.channelData, dec.sampleRate);
+$("go").onclick = async () => {
+  $("go").disabled = true; $("s1").textContent = "Encoding..."; await new Promise((r) => setTimeout(r, 30));
+  try {
+    let fmt = $("fmt").value, sr = orig.sr, chs = orig.chs, o = {}; const looping = $("loop").value === "1", n = chs[0].length;
+    if (fmt === "vag-st") { fmt = "vag"; o.interleave = true; if (chs.length < 2) chs = [chs[0], chs[0]]; }
+    if (fmt === "aica") { o.outChannels = 1; } if (fmt === "xa") { o.xaRate = 37800; } if (fmt === "vox" || fmt === "oki-wav") { o.codecRate = 8000; }
+    if (looping) { if (fmt === "vag") o.loop = true; if (fmt === "dsp") { o.loopStart = 0; o.loopEnd = n - 1; } if (fmt === "adx") { o.loopStart = 0; o.loopEnd = n; } }
+    const t0 = performance.now(); enc = gamedac.encode(Object.assign({ format: fmt, channels: chs, sampleRate: sr }, o)); const t1 = performance.now();
+    const isHeadless = !gamedac.detect(enc); dec = gamedac.decode(enc, isHeadless ? { format: fmt, sampleRate: fmt === "vox" ? 8000 : sr, channels: fmt === "vag" && o.interleave ? 2 : (fmt === "vb" || fmt === "aica" || fmt === "vox" ? 1 : undefined) } : {}); const t2 = performance.now();
+    const f = gamedac.formats.find((x) => x.id === gamedac.detect(enc) || x.id === fmt);
+    $("r1").textContent = (enc.length / 1024).toFixed(1) + " KB, " + dec.channels + " ch, " + dec.sampleRate + " Hz" + (dec.loop ? ", loop " + dec.loop.start + " to " + dec.loop.end : "");
+    $("r2").textContent = (100 * enc.length / (n * chs.length * 2)).toFixed(1) + "% of the size"; $("r3").textContent = Math.round(t1 - t0) + " ms / " + Math.round(t2 - t1) + " ms";
+    $("pb").disabled = false; $("dl").disabled = false; $("s1").textContent = "Done (" + (f ? f.label : fmt) + ")."; window.__ext = f ? f.extensions[0] : "bin";
+  } catch (err) { $("s1").textContent = "Encode failed: " + err.message; }
+  $("go").disabled = false;
+};
+$("dl").onclick = () => save(enc, "gamedac." + (window.__ext === "vagi" ? "vag" : window.__ext));
+
+$("gfile").onchange = async (e) => { const f = e.target.files[0]; if (!f) return; const bytes = new Uint8Array(await f.arrayBuffer());
+  try { const id = gamedac.detect(bytes); opened = gamedac.decode(bytes, id ? {} : { format: $("hl").value, sampleRate: +$("hrate").value, channels: 1 });
+    $("s2").textContent = f.name + ": " + opened.format + ", " + opened.channels + " ch, " + opened.sampleRate + " Hz, " + (opened.channelData[0].length / opened.sampleRate).toFixed(2) + " s" + (opened.loop ? ", loop " + opened.loop.start + " to " + opened.loop.end : "") + (id ? "" : " (headerless; read as " + $("hl").value + ")"); $("gplay").disabled = false; $("gwav").disabled = false;
+  } catch (err) { opened = null; $("s2").textContent = "Could not read that file: " + err.message; $("gplay").disabled = true; $("gwav").disabled = true; } };
+$("gplay").onclick = () => play(opened.channelData, opened.sampleRate);
+$("gwav").onclick = () => save(gamedac.toWav(opened), "gamedac-decoded.wav");
+</script></main></body></html>

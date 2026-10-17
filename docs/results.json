@@ -1,0 +1,109 @@
+{
+  "generated": "synthetic signals, seeded; Node v24.20.0",
+  "formats": [
+    {
+      "id": "vag",
+      "label": "VAG",
+      "sampleRate": 44100,
+      "channels": 1,
+      "snr_tones": 47.5,
+      "bytes": 252048,
+      "pcm16Bytes": 882000,
+      "percentOfPcm16": 28.6,
+      "bitsPerSample": 4.57,
+      "encodeMs": 163,
+      "decodeMs": 3,
+      "snr_voice": 41.3
+    },
+    {
+      "id": "xa",
+      "label": "XA",
+      "sampleRate": 37800,
+      "channels": 2,
+      "snr_tones": 46.1,
+      "bytes": 442176,
+      "pcm16Bytes": 1512000,
+      "percentOfPcm16": 29.2,
+      "bitsPerSample": 4.68,
+      "encodeMs": 323,
+      "decodeMs": 7,
+      "snr_voice": 36.5
+    },
+    {
+      "id": "dsp",
+      "label": "DSP",
+      "sampleRate": 32000,
+      "channels": 2,
+      "snr_tones": 43.3,
+      "bytes": 365920,
+      "pcm16Bytes": 1280000,
+      "percentOfPcm16": 28.6,
+      "bitsPerSample": 4.57,
+      "encodeMs": 861,
+      "decodeMs": 4,
+      "snr_voice": 34.6
+    },
+    {
+      "id": "adx",
+      "label": "ADX",
+      "sampleRate": 44100,
+      "channels": 2,
+      "snr_tones": 47.2,
+      "bytes": 496206,
+      "pcm16Bytes": 1764000,
+      "percentOfPcm16": 28.1,
+      "bitsPerSample": 4.5,
+      "encodeMs": 60,
+      "decodeMs": 6,
+      "snr_voice": 39.8
+    },
+    {
+      "id": "aica",
+      "label": "AICA",
+      "sampleRate": 44100,
+      "channels": 1,
+      "snr_tones": 35.1,
+      "bytes": 220500,
+      "pcm16Bytes": 882000,
+      "percentOfPcm16": 25,
+      "bitsPerSample": 4,
+      "encodeMs": 25,
+      "decodeMs": 5,
+      "snr_voice": 27.6
+    },
+    {
+      "id": "yamaha-wav",
+      "label": "Yamaha WAV",
+      "sampleRate": 22050,
+      "channels": 1,
+      "snr_tones": 31.5,
+      "bytes": 110308,
+      "pcm16Bytes": 441000,
+      "percentOfPcm16": 25,
+      "bitsPerSample": 4,
+      "encodeMs": 7,
+      "decodeMs": 2,
+      "snr_voice": 12.8
+    },
+    {
+      "id": "oki-wav",
+      "label": "OKI WAV",
+      "sampleRate": 8000,
+      "channels": 1,
+      "snr_tones": 21.2,
+      "bytes": 40058,
+      "pcm16Bytes": 160000,
+      "percentOfPcm16": 25,
+      "bitsPerSample": 4.01,
+      "encodeMs": 2,
+      "decodeMs": 1,
+      "snr_voice": 9.4
+    }
+  ],
+  "size": {
+    "rawBytes": 78707,
+    "strippedBytes": 58988,
+    "gzipBytes": 22018,
+    "strippedGzipBytes": 15299
+  }
+}

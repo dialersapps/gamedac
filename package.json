@@ -1,0 +1,26 @@
+{
+  "name": "gamedac",
+  "version": "1.0.0",
+  "description": "Encode and decode classic video-game audio in plain JavaScript: PlayStation VAG/XA, Nintendo DSP, CRI ADX, Dreamcast AICA, OKI. No WebAssembly, no dependencies.",
+  "main": "gamedac.js",
+  "module": "gamedac.mjs",
+  "exports": {
+    ".": {
+      "import": "./gamedac.mjs",
+      "require": "./gamedac.js"
+    }
+  },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node tests/run.mjs",
+    "measure": "node tools/measure.mjs && node tools/make-diagrams.mjs",
+    "crosscheck": "node tools/crosscheck-vgmstream.mjs"
+  },
+  "files": ["gamedac.js", "gamedac.mjs", "README.md", "LICENSE", "test.html", "demo.html", "tests", "tools", "docs"],
+  "keywords": ["adpcm", "vag", "playstation", "psx", "xa", "dsp", "gamecube", "wii", "adx", "cri", "dreamcast", "aica", "oki", "game-audio", "vgmstream", "encoder", "decoder", "javascript", "browser", "no-wasm"],
+  "license": "MIT",
+  "author": "Dialer's Apps",
+  "homepage": "https://dialersapps.pages.dev/lab/notes/gamedac.html",
+  "repository": { "type": "git", "url": "git+https://github.com/dialersapps/gamedac.git" },
+  "bugs": { "url": "https://github.com/dialersapps/gamedac/issues" }
+}

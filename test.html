@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>gamedac.js tests</title>
+<style>:root{color-scheme:dark light}body{font:15px/1.5 system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;background:#0b0f14;color:#e6ecf5}h1{font-size:1.3rem}.p{color:#6fcf8a}.f{color:#ff7b7b}.row{font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:2px 0;border-bottom:1px solid #1d2a3a}.sum{margin:1rem 0;font-size:1.1rem;font-weight:600}.d{color:#9fb4cc}@media (prefers-color-scheme:light){body{background:#fff;color:#14202e}.row{border-color:#e3e8ef}.d{color:#52657d}}</style></head>
+<body><h1>gamedac.js: tests</h1><p class="d">Synthetic, seeded signals; nothing is uploaded. The same checks run in Node with <code>node tests/run.mjs</code>.</p><div id="sum" class="sum">Running...</div><div id="out"></div>
+<script src="gamedac.js"></script><script src="tests/checks.js"></script>
+<script type="module">
+import * as esm from "./gamedac.mjs";
+const out = document.getElementById("out"), sum = document.getElementById("sum");
+const log = (name, pass, detail, summary) => { if (summary) { sum.textContent = detail; return; } const d = document.createElement("div"); d.className = "row " + (pass ? "p" : "f"); d.textContent = (pass ? "PASS " : "FAIL ") + name + (detail ? "  (" + detail + ")" : ""); out.appendChild(d); };
+const a = await gamedacChecks.run(window.gamedac, log);
+const x = gamedacChecks.tones(32000, 0.5, 3), s1 = esm.encode({ format: "dsp", channels: [x], sampleRate: 32000 }), s2 = gamedac.encode({ format: "dsp", channels: [x], sampleRate: 32000 });
+const same = esm.version === gamedac.version && s1.length === s2.length && s1.every((v, i) => v === s2[i]);
+log("ES module build produces the same bytes as the script build", same, esm.version);
+sum.textContent += same ? "; ES module OK" : "; ES module MISMATCH";
+document.title = (a.failed || !same ? "FAIL" : "PASS") + " - gamedac.js tests";
+</script></body></html>
