@@ -13,6 +13,8 @@
 > [!NOTE]
 > **How far to trust it.** Every format's decoded output was compared with [vgmstream](https://github.com/vgmstream/vgmstream) (compiled to WebAssembly, used as an independent decoder) and is **bit-identical** for every format we could open in it; the comparison is in [`docs/crosscheck.json`](docs/crosscheck.json) and found six real bugs along the way (see [What the vgmstream check found](#what-the-vgmstream-check-found)). We have **not** tested on real hardware, in an emulator, in a game, or with the console makers' own tools. See [Known limits](#known-limits).
 
+**Try it live:** [demo](https://dialersapps.github.io/gamedac/demo.html) (encode to or open game audio formats in the browser) · [tests](https://dialersapps.github.io/gamedac/test.html)
+
 **Contents:** [Why](#why) · [Quick start](#use) · [API](#api) · [How it works](#how-it-works) · [vgmstream check](#what-the-vgmstream-check-found) · [Numbers](#numbers-what-we-measured) · [Tests](#tests) · [Limits](#known-limits) · [Licence](#licence)
 
 ## Why
